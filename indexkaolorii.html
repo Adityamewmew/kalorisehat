@@ -1,0 +1,731 @@
+﻿<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kinetic Health App</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+
+<body class="bg-[#f2f2f7]">
+  <div id="root"></div>
+
+  <script type="text/babel" data-type="module">
+    import React, { useState, useEffect } from 'https://esm.sh/react@18.2.0';
+    import { createRoot } from 'https://esm.sh/react-dom@18.2.0/client';
+    import {
+      Apple,
+      Search,
+      Flame,
+      X,
+      BarChart2
+    } from 'https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0';
+
+    function App() {
+      // --- STATE MANAGEMENT ---
+      const [calories, setCalories] = useState([]);
+      const [workouts, setWorkouts] = useState([]);
+      const [isCalorieModalOpen, setIsCalorieModalOpen] = useState(false);
+      const [isWorkoutModalOpen, setIsWorkoutModalOpen] = useState(false);
+      const [selectedItem, setSelectedItem] = useState(null);
+      const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+      const [calSearchDate, setCalSearchDate] = useState('');
+      const [woSearchDate, setWoSearchDate] = useState('');
+      const [isChartsModalOpen, setIsChartsModalOpen] = useState(false);
+
+      // Form States
+      const [calForm, setCalForm] = useState({
+        name: '', amount: '', date: new Date().toISOString().split('T')[0], time:
+          '12:00'
+      });
+      const [woForm, setWoForm] = useState({
+        date: new Date().toISOString().split('T')[0], type: 'STRENGTH', exerciseName: '',
+        weight: '', reps: '', sets: ''
+      });
+
+      // --- LOCAL STORAGE LOGIC ---
+      const [isFirstLoad, setIsFirstLoad] = useState(true);
+
+      useEffect(() => {
+        const savedCalories = localStorage.getItem('obsidian_calories');
+        const savedWorkouts = localStorage.getItem('obsidian_workouts');
+        if (savedCalories) setCalories(JSON.parse(savedCalories));
+        if (savedWorkouts) setWorkouts(JSON.parse(savedWorkouts));
+        setIsFirstLoad(false);
+      }, []);
+
+      useEffect(() => {
+        if (!isFirstLoad) {
+          localStorage.setItem('obsidian_calories', JSON.stringify(calories));
+        }
+      }, [calories, isFirstLoad]);
+
+      useEffect(() => {
+        if (!isFirstLoad) {
+          localStorage.setItem('obsidian_workouts', JSON.stringify(workouts));
+        }
+      }, [workouts, isFirstLoad]);
+
+      // --- HELPER FUNCTIONS ---
+      const getTodayCalories = () => {
+        const today = new Date().toISOString().split('T')[0];
+        return calories.filter(c => c.date === today).reduce((sum, curr) => sum + Number(curr.amount), 0);
+      };
+
+      const getWeeklyCalories = () => {
+        if (calories.length === 0) return 0;
+        const total = calories.reduce((sum, curr) => sum + Number(curr.amount), 0);
+        return Math.round(total / (calories.length > 7 ? 7 : calories.length || 1));
+      };
+
+      // --- HANDLERS ---
+      const handleAddCalorie = (e) => {
+        e.preventDefault();
+        if (!calForm.name || !calForm.amount) return alert("Isi data dengan lengkap.");
+
+        const newEntry = {
+          id: Date.now().toString(),
+          name: calForm.name,
+          amount: Number(calForm.amount),
+          date: calForm.date,
+          time: calForm.time
+        };
+
+        const updated = [newEntry, ...calories].sort((a, b) => {
+          return new Date(`${b.date}T${b.time}`) - new Date(`${a.date}T${a.time}`);
+        });
+
+        setCalories(updated);
+        setIsCalorieModalOpen(false);
+        setCalForm({ name: '', amount: '', date: new Date().toISOString().split('T')[0], time: '12:00' });
+      };
+
+      const handleAddWorkout = (e) => {
+        e.preventDefault();
+        if (!woForm.exerciseName || !woForm.weight) return alert("Isi data latihan.");
+
+        const newEntry = {
+          id: Date.now().toString(),
+          date: woForm.date,
+          type: woForm.type,
+          exercise: woForm.exerciseName,
+          weight: Number(woForm.weight),
+          reps: Number(woForm.reps),
+          sets: Number(woForm.sets || 3)
+        };
+
+        const updated = [newEntry, ...workouts].sort((a, b) => new Date(b.date) - new Date(a.date));
+        setWorkouts(updated);
+        setIsWorkoutModalOpen(false);
+        setWoForm({
+          date: new Date().toISOString().split('T')[0], type: 'STRENGTH', exerciseName: '', weight: '', reps: '', sets: ''
+        });
+      };
+
+      // --- GLASSMORPHISM STYLES UTILITIES ---
+      const glassCard = "bg-white/60 ios-blur border border-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.05)] rounded-[2rem] relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/60 before:to-white/10 before:pointer-events-none";
+      const glassInput = "w-full bg-white/60 ios-blur border border-white/80 rounded-[1.5rem] px-5 py-4 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 focus:bg-white/80 transition-all text-sm font-semibold text-slate-800 placeholder-slate-400 font-montserrat shadow-[inset_0_2px_5px_rgba(0,0,0,0.02)]";
+
+      // --- RENDER COMPONENTS ---
+
+
+      const Header = () => (
+        <header className="sticky top-0 z-50 bg-white/60 ios-blur border-b border-white/80 px-4 md:px-10 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-black rounded-xl flex items-center justify-center rotate-3 scale-90 md:scale-100">
+              <span className="text-white font-black text-sm">K</span>
+            </div>
+            <h2 className="text-lg md:text-2xl font-black tracking-tighter text-slate-800 mt-0.5">Kaloriku</h2>
+          </div>
+
+          <div className="flex items-center gap-2 hover-scale">
+            <button onClick={() => setIsWorkoutModalOpen(true)}
+              className="p-3 md:px-5 bg-white/60 border border-white/80 text-slate-800 text-[10px] md:text-xs font-bold tracking-wider hover:bg-white/90 rounded-2xl transition-all shadow-sm">
+              <span className="md:hidden"><Flame size={18} /></span>
+              <span className="hidden md:inline">ADD WORKOUT</span>
+            </button>
+            <button onClick={() => setIsCalorieModalOpen(true)}
+              className="p-3 md:px-5 bg-black text-white text-[10px] md:text-xs font-bold tracking-wider hover:bg-slate-800 rounded-2xl shadow-lg transition-all">
+              <span className="md:hidden"><Apple size={18} /></span>
+              <span className="hidden md:inline">ADD CALORIES</span>
+            </button>
+          </div>
+        </header>
+      );
+
+      const Dashboard = () => (
+        <div className="p-4 md:p-10 space-y-6 md:space-y-10 max-w-[1400px] mx-auto animate-in fade-in duration-700">
+          {/* Top Stats */}
+          {/* Top Stats - Unified Version */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
+            {/* Unified Calorie Card */}
+            <div
+              onClick={() => setIsChartsModalOpen(true)}
+              className={`${glassCard} md:col-span-2 p-5 md:p-8 flex flex-col md:flex-row items-center gap-6 cursor-pointer hover:bg-white/70 transition-all active:scale-[0.99] group relative`}>
+
+              {/* Progress Circle (Decorative) */}
+              <div className="relative w-28 h-28 shrink-0">
+                <svg className="w-full h-full transform -rotate-90">
+                  <circle cx="56" cy="56" r="48" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-slate-200" />
+                  <circle cx="56" cy="56" r="48" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray={301.59} strokeDashoffset={301.59 - (Math.min(getTodayCalories() / 2500, 1) * 301.59)} className="text-black transition-all duration-1000" />
+                </svg>
+                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                  <span className="text-xl font-black text-slate-800">{Math.round(Math.min(getTodayCalories() / 2500, 1) * 100)}%</span>
+                  <span className="text-[8px] font-bold text-slate-400 uppercase">Goal</span>
+                </div>
+              </div>
+
+              {/* Stats Labels */}
+              <div className="flex-1 w-full grid grid-cols-3 gap-4 border-l border-slate-200/50 md:pl-8">
+                <div>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Today</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl md:text-2xl font-black text-slate-800">{getTodayCalories()}</span>
+                    <span className="text-[10px] font-bold text-slate-500">kcal</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Average</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl md:text-2xl font-black text-slate-800">{getWeeklyCalories()}</span>
+                    <span className="text-[10px] font-bold text-slate-500">kcal</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Month</p>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-xl md:text-2xl font-black text-slate-800">{(getWeeklyCalories() * 4 / 1000).toFixed(1)}k</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Chart Icon Hint */}
+              <div className="absolute top-4 right-4 p-2 rounded-full bg-slate-100 text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                <BarChart2 size={14} />
+              </div>
+            </div>
+
+            {/* Streak Card */}
+            <div className={`${glassCard} p-5 md:p-8 flex flex-col justify-center border-l-4 border-l-black`}>
+              <p className="text-[10px] md:text-xs font-bold text-slate-500 tracking-wider mb-2 uppercase">Workout Streak</p>
+              <div className="flex items-baseline gap-2 drop-shadow-sm">
+                <h3 className="text-4xl md:text-5xl font-black text-slate-800">
+                  {[...new Set(workouts.map(w => w.date))].length}
+                </h3>
+                <span className="text-sm font-semibold text-slate-600">DAYS</span>
+              </div>
+              <div className="mt-4 flex gap-2">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${i <= [...new Set(workouts.map(w => w.date))].length ? 'bg-black shadow-[0_0_10px_rgba(0,0,0,0.3)]'
+                    : 'bg-white/50'}`}></div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Dual Timelines Area with Date Grouping & Search */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
+            {/* Calories Timeline (Grouped by Date) */}
+            <div className={`${glassCard} p-4 md:p-5 h-[450px] flex flex-col`}>
+              <div className="flex items-center justify-between mb-4 px-1">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-orange-100 rounded-lg text-orange-600">
+                    <Apple size={14} />
+                  </div>
+                  <h3 className="font-bold text-slate-800 tracking-tight uppercase text-[11px]">Nutrition Log</h3>
+                </div>
+                {/* Search Date Filter */}
+                <div className="flex items-center gap-2 bg-white/50 px-2 py-1 rounded-lg border border-white/80">
+                  <Search size={10} className="text-slate-400" />
+                  <input
+                    type="date"
+                    value={calSearchDate}
+                    onChange={(e) => setCalSearchDate(e.target.value)}
+                    className="bg-transparent border-none text-[9px] font-bold text-slate-600 focus:ring-0 p-0 w-24"
+                  />
+                  {calSearchDate && (
+                    <button onClick={() => setCalSearchDate('')} className="text-slate-400 hover:text-slate-600">
+                      <X size={10} />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+                {(() => {
+                  const filteredCals = calSearchDate ? calories.filter(c => c.date === calSearchDate) : calories;
+                  const groupedCals = filteredCals.reduce((acc, curr) => {
+                    if (!acc[curr.date]) acc[curr.date] = [];
+                    acc[curr.date].push(curr);
+                    return acc;
+                  }, {});
+
+                  const dates = Object.keys(groupedCals).sort((a, b) => new Date(b) - new Date(a));
+
+                  if (dates.length === 0) return (
+                    <div className="text-center py-20 opacity-40">
+                      <Search size={24} className="mx-auto mb-2" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest">No Matches</p>
+                    </div>
+                  );
+
+                  return dates.map(date => (
+                    <div key={date} className="relative">
+                      <div className="flex items-center gap-2 mb-2 px-1">
+                        <div className="h-px bg-slate-200 flex-1"></div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{date === new Date().toISOString().split('T')[0] ? 'TODAY' : date}</span>
+                        <div className="h-px bg-slate-200 flex-1"></div>
+                      </div>
+                      <div className="space-y-2">
+                        {groupedCals[date].sort((a, b) => (b.time || '').localeCompare(a.time || '')).map(item => (
+                          <div key={item.id}
+                            onClick={() => { setSelectedItem({ ...item, type: 'NUTRITION' }); setIsDetailModalOpen(true); }}
+                            className="p-3 rounded-2xl bg-white/40 border border-white/50 flex justify-between items-center hover:bg-white/60 transition-all shadow-sm cursor-pointer active:scale-95">
+                            <div className="flex-1 min-w-0 pr-2">
+                              <h4 className="font-bold text-[11px] text-slate-800 truncate">{item.name}</h4>
+                              <p className="text-[9px] text-slate-500 font-medium">{item.time} • {item.date}</p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-[12px] font-black text-slate-800">{item.amount}</span>
+                              <p className="text-[8px] font-bold text-slate-400 tracking-tighter uppercase">Kcal</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+
+            {/* Workouts Timeline (Grouped by Date & Search) */}
+            <div className={`${glassCard} p-4 md:p-5 h-[450px] flex flex-col`}>
+              <div className="flex items-center justify-between mb-4 px-1">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 bg-blue-100 rounded-lg text-blue-600">
+                    <Flame size={14} />
+                  </div>
+                  <h3 className="font-bold text-slate-800 tracking-tight uppercase text-[11px]">Workout Progres</h3>
+                </div>
+                {/* Search Date Filter */}
+                <div className="flex items-center gap-2 bg-white/50 px-2 py-1 rounded-lg border border-white/80">
+                  <Search size={10} className="text-slate-400" />
+                  <input
+                    type="date"
+                    value={woSearchDate}
+                    onChange={(e) => setWoSearchDate(e.target.value)}
+                    className="bg-transparent border-none text-[9px] font-bold text-slate-600 focus:ring-0 p-0 w-24"
+                  />
+                  {woSearchDate && (
+                    <button onClick={() => setWoSearchDate('')} className="text-slate-400 hover:text-slate-600">
+                      <X size={10} />
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-1">
+                {(() => {
+                  const filteredWo = woSearchDate ? workouts.filter(w => w.date === woSearchDate) : workouts;
+                  const groupedWo = filteredWo.reduce((acc, curr) => {
+                    if (!acc[curr.date]) acc[curr.date] = [];
+                    acc[curr.date].push(curr);
+                    return acc;
+                  }, {});
+
+                  const dates = Object.keys(groupedWo).sort((a, b) => new Date(b) - new Date(a));
+
+                  if (dates.length === 0) return (
+                    <div className="text-center py-20 opacity-40">
+                      <Search size={24} className="mx-auto mb-2" />
+                      <p className="text-[10px] font-bold uppercase tracking-widest">No Matches</p>
+                    </div>
+                  );
+
+                  return dates.map(date => (
+                    <div key={date} className="relative">
+                      <div className="flex items-center gap-2 mb-2 px-1">
+                        <div className="h-px bg-slate-200 flex-1"></div>
+                        <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{date === new Date().toISOString().split('T')[0] ? 'TODAY' : date}</span>
+                        <div className="h-px bg-slate-200 flex-1"></div>
+                      </div>
+                      <div className="space-y-2">
+                        {groupedWo[date].map(item => (
+                          <div key={item.id}
+                            onClick={() => { setSelectedItem({ ...item, isWorkout: true }); setIsDetailModalOpen(true); }}
+                            className="p-3 rounded-2xl bg-white/40 border border-white/50 flex justify-between items-center hover:bg-white/60 transition-all shadow-sm cursor-pointer active:scale-95">
+                            <div className="flex-1 min-w-0 pr-2">
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 uppercase tracking-tighter">{item.type}</span>
+                                <h4 className="font-bold text-[11px] text-slate-800 truncate">{item.exercise}</h4>
+                              </div>
+                              <p className="text-[9px] text-slate-500 font-medium mt-1">{item.sets} x {item.reps} reps</p>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="text-[12px] font-black text-slate-800">{item.weight}</span>
+                              <p className="text-[8px] font-bold text-slate-400 tracking-tighter uppercase">KG</p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+
+      // --- MODALS ---
+      const Modals = () => (
+        <>
+          {isCalorieModalOpen && (
+            <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div
+                className="bg-white/70 ios-blur p-8 w-full max-w-md border border-white/80 shadow-[0_32px_64px_rgba(0,0,0,0.15)] rounded-[2.5rem] animate-in zoom-in-95 duration-200 relative overflow-hidden">
+                {/* Glossy highlight inside modal */}
+                <div
+                  className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-80">
+                </div>
+
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="text-2xl font-black tracking-tight text-slate-800 drop-shadow-sm">ADD CALORIES</h3>
+                  <button onClick={() => setIsCalorieModalOpen(false)} className="bg-white/50 p-2 rounded-full border
+            border-white/80 shadow-sm text-slate-500 hover:text-slate-800 hover:bg-white/80 transition-all">
+                    <X size={20} />
+                  </button>
+                </div>
+                <form onSubmit={handleAddCalorie} className="space-y-5">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">DATE</label>
+                    <input type="date" required value={calForm.date} onChange={e => setCalForm({
+                      ...calForm, date:
+                        e.target.value
+                    })} className={glassInput} />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">ITEM NAME</label>
+                    <input type="text" required value={calForm.name} onChange={e => setCalForm({
+                      ...calForm, name:
+                        e.target.value
+                    })} placeholder="e.g. Chicken Breast 200g" className={glassInput} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">KCAL</label>
+                      <input type="number" required value={calForm.amount} onChange={e => setCalForm({
+                        ...calForm, amount:
+                          e.target.value
+                      })} placeholder="0" className={glassInput} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">TIME</label>
+                      <input type="time" required value={calForm.time} onChange={e => setCalForm({
+                        ...calForm, time:
+                          e.target.value
+                      })} className={glassInput} />
+                    </div>
+                  </div>
+                  <button type="submit"
+                    className="w-full bg-black text-white font-bold tracking-wider py-4 mt-8 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:bg-slate-800 hover:-translate-y-0.5 transition-all">
+                    CONFIRM ENTRY
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {isWorkoutModalOpen && (
+            <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+              <div
+                className="bg-white/70 ios-blur p-8 w-full max-w-md border border-white/80 shadow-[0_32px_64px_rgba(0,0,0,0.15)] rounded-[2.5rem] animate-in zoom-in-95 duration-200 relative overflow-hidden">
+                <div
+                  className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-80">
+                </div>
+
+                <div className="flex justify-between items-center mb-8">
+                  <h3 className="text-2xl font-black tracking-tight text-slate-800 drop-shadow-sm">LOG WORKOUT</h3>
+                  <button onClick={() => setIsWorkoutModalOpen(false)} className="bg-white/50 p-2 rounded-full border
+            border-white/80 shadow-sm text-slate-500 hover:text-slate-800 hover:bg-white/80 transition-all">
+                    <X size={20} />
+                  </button>
+                </div>
+                <form onSubmit={handleAddWorkout} className="space-y-5">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">DATE</label>
+                      <input type="date" required value={woForm.date} onChange={e => setWoForm({
+                        ...woForm, date:
+                          e.target.value
+                      })} className={glassInput} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">TYPE</label>
+                      <select value={woForm.type} onChange={e => setWoForm({ ...woForm, type: e.target.value })}
+                        className={`${glassInput} appearance-none cursor-pointer`}>
+                        <option>STRENGTH</option>
+                        <option>HYPERTROPHY</option>
+                        <option>ENDURANCE</option>
+                        <option>MOBILITY</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">EXERCISE NAME</label>
+                    <input type="text" required value={woForm.exerciseName} onChange={e => setWoForm({
+                      ...woForm, exerciseName:
+                        e.target.value
+                    })} placeholder="e.g. Barbell Squat" className={glassInput} />
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">SETS</label>
+                      <input type="number" min="1" required value={woForm.sets} onChange={e => setWoForm({
+                        ...woForm, sets:
+                          e.target.value
+                      })} placeholder="3" className={glassInput} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">REPS</label>
+                      <input type="number" min="1" required value={woForm.reps} onChange={e => setWoForm({
+                        ...woForm, reps:
+                          e.target.value
+                      })} placeholder="10" className={glassInput} />
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">WEIGHT (KG)</label>
+                      <input type="number" min="0" required value={woForm.weight} onChange={e => setWoForm({
+                        ...woForm, weight:
+                          e.target.value
+                      })} placeholder="60" className={glassInput} />
+                    </div>
+                  </div>
+
+                  <button type="submit"
+                    className="w-full bg-black text-white font-bold tracking-wider py-4 mt-8 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:bg-slate-800 hover:-translate-y-0.5 transition-all">
+                    SAVE WORKOUT
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+          {isDetailModalOpen && selectedItem && (
+            <div className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => setIsDetailModalOpen(false)}>
+              <div className="bg-white/80 ios-blur p-6 w-full max-w-sm border border-white/80 shadow-2xl rounded-[2.5rem] animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center mb-6">
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black tracking-widest ${selectedItem.isWorkout ? 'bg-blue-100 text-blue-600' : 'bg-orange-100 text-orange-600'}`}>
+                    {selectedItem.isWorkout ? 'WORKOUT LOG' : 'NUTRITION LOG'}
+                  </span>
+                  <button onClick={() => setIsDetailModalOpen(false)} className="bg-white/50 p-2 rounded-full border border-white/80 shadow-sm text-slate-400 hover:text-slate-800 transition-all">
+                    <X size={18} />
+                  </button>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-2xl font-black text-slate-800 leading-tight">
+                      {selectedItem.isWorkout ? selectedItem.exercise : selectedItem.name}
+                    </h3>
+                    <p className="text-xs font-bold text-slate-400 mt-1 tracking-wider uppercase">{selectedItem.date} • {selectedItem.time || '00:00'}</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-2">
+                    <div className="bg-white/40 p-4 rounded-2xl border border-white/50">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">{selectedItem.isWorkout ? 'TOTAL LOAD' : 'ENERGY'}</p>
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-xl font-black text-slate-800">{selectedItem.isWorkout ? `${selectedItem.weight}` : `${selectedItem.amount}`}</span>
+                        <span className="text-[10px] font-bold text-slate-400">{selectedItem.isWorkout ? 'KG' : 'KCAL'}</span>
+                      </div>
+                    </div>
+
+                    {selectedItem.isWorkout ? (
+                      <div className="bg-white/40 p-4 rounded-2xl border border-white/50">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">INTENSITY</p>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl font-black text-slate-800">{selectedItem.sets}x{selectedItem.reps}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-white/40 p-4 rounded-2xl border border-white/50">
+                        <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">DENSITY</p>
+                        <div className="flex items-baseline gap-1">
+                          <span className="text-xl font-black text-slate-800">HIGH</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (selectedItem.isWorkout) {
+                        setWorkouts(prev => prev.filter(w => w.id !== selectedItem.id));
+                      } else {
+                        setCalories(prev => prev.filter(c => c.id !== selectedItem.id));
+                      }
+                      setIsDetailModalOpen(false);
+                    }}
+                    className="w-full py-4 text-rose-500 text-[10px] font-black tracking-widest hover:bg-rose-50 transition-all rounded-2xl border border-rose-100 mt-4 uppercase">
+                    Delete Entry
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+          {isChartsModalOpen && (
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-md z-[100] flex items-center justify-center p-4 md:p-8" onClick={() => setIsChartsModalOpen(false)}>
+              <div className="bg-white/90 ios-blur w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-white/80 shadow-2xl rounded-[3rem] animate-in zoom-in-95 duration-300 p-6 md:p-10" onClick={e => e.stopPropagation()}>
+
+                <div className="flex justify-between items-center mb-8">
+                  <div>
+                    <h2 className="text-3xl font-black text-slate-800 tracking-tighter">PERFORMANCE ANALYTICS</h2>
+                    <p className="text-[10px] font-bold text-slate-400 tracking-[0.2em] uppercase mt-1">Nutrition & Metabolism Oversight</p>
+                  </div>
+                  <button onClick={() => setIsChartsModalOpen(false)} className="bg-white p-3 rounded-full shadow-md text-slate-400 hover:text-slate-800 transition-all">
+                    <X size={24} />
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {/* DAILY TREND */}
+                  <div className="bg-white/40 p-6 rounded-3xl border border-white flex flex-col h-64">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Daily Intake</p>
+                    <div className="flex-1 flex items-end justify-between gap-2">
+                      {[40, 70, 45, 90, 65, 80, 50].map((h, i) => (
+                        <div key={i} className="flex-1 bg-black/5 rounded-t-lg relative group overflow-hidden" style={{ height: `${h}%` }}>
+                          <div className="absolute inset-0 bg-black opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-3 px-1">
+                      <span className="text-[8px] font-bold text-slate-400">MON</span>
+                      <span className="text-[8px] font-bold text-slate-800">SUN</span>
+                    </div>
+                  </div>
+
+                  {/* WEEKLY TREND */}
+                  <div className="bg-white/40 p-6 rounded-3xl border border-white flex flex-col h-64">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Weekly Flux</p>
+                    <div className="flex-1 flex items-end justify-between gap-3">
+                      {[60, 40, 85, 55].map((h, i) => (
+                        <div key={i} className={`flex-1 rounded-t-xl relative group ${i === 2 ? 'bg-black shadow-lg' : 'bg-black/10'}`} style={{ height: `${h}%` }}>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex justify-between mt-3 px-1">
+                      <span className="text-[8px] font-bold text-slate-400">W1</span>
+                      <span className="text-[8px] font-bold text-slate-400">W4</span>
+                    </div>
+                  </div>
+
+                  {/* MONTHLY SETPOINT */}
+                  <div className="bg-white/40 p-6 rounded-3xl border border-white flex flex-col h-64">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Monthly Volume</p>
+                    <div className="flex-1 flex items-center justify-center relative">
+                      <svg className="w-32 h-32 transform -rotate-90">
+                        <circle cx="64" cy="64" r="50" stroke="currentColor" strokeWidth="12" fill="transparent" className="text-slate-100" />
+                        <circle cx="64" cy="64" r="50" stroke="currentColor" strokeWidth="12" fill="transparent" strokeDasharray={314} strokeDashoffset={314 - (0.65 * 314)} className="text-black" />
+                      </svg>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center">
+                        <span className="text-2xl font-black text-slate-800">65%</span>
+                        <span className="text-[8px] font-bold text-slate-400">TOTAL</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-8 p-8 rounded-[2rem] bg-black text-white relative overflow-hidden">
+                  <div className="relative z-10">
+                    <h4 className="text-xl font-bold mb-2">AI Health Insight</h4>
+                    <p className="text-xs text-slate-400 leading-relaxed max-w-xl">Konsep "Obsidian Health" Anda menunjukkan stabilitas yang baik dalam 24 jam terakhir. Volume latihan hari ini berkontribusi pada defisit kalori bersih sebesar 12%. Pertahankan ritme ini untuk target bulanan 62.0K.</p>
+                  </div>
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      );
+
+      // --- MAIN RENDER ---
+      return (
+        <>
+          {/* Impor Font Poppins dan Montserrat */}
+          <style>
+            {
+              ` @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+        .font-poppins {
+          font-family: 'Poppins', sans-serif !important;
+        }
+
+        .font-montserrat {
+          font-family: 'Montserrat', sans-serif !important;
+        }
+
+        /* Custom scrollbar untuk elemen kaca agar lebih rapi */
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background-color: rgba(0, 0, 0, 0.1);
+          border-radius: 20px;
+        }
+        
+        h1, h2, h3, h4, h5, h6, .font-poppins {
+          font-family: 'Poppins', sans-serif !important;
+        }
+        
+        body, p, span, div, button, input, select {
+          font-family: 'Montserrat', sans-serif;
+        }
+        
+        .ios-blur {
+          backdrop-filter: blur(24px) saturate(180%);
+          -webkit-backdrop-filter: blur(24px) saturate(180%);
+        }
+        `
+            }
+          </style>
+
+          <div
+            className="min-h-screen bg-[#f2f2f7] text-slate-800 font-montserrat selection:bg-[#007AFF] selection:text-white flex relative overflow-hidden">
+
+            {/* Dekorasi Latar Belakang (Blobs) untuk Efek Liquid Glass iOS */}
+            <div
+              className="absolute top-[-10%] left-[-10%] w-[40vw] h-[40vw] rounded-full bg-[#007AFF]/20 mix-blend-multiply filter blur-[100px] opacity-80 pointer-events-none animate-pulse">
+            </div>
+            <div
+              className="absolute top-[20%] right-[-5%] w-[30vw] h-[30vw] rounded-full bg-[#5856D6]/20 mix-blend-multiply filter blur-[100px] opacity-80 pointer-events-none">
+            </div>
+            <div
+              className="absolute bottom-[-10%] left-[20%] w-[35vw] h-[35vw] rounded-full bg-[#34C759]/20 mix-blend-multiply filter blur-[100px] opacity-80 pointer-events-none">
+            </div>
+
+
+
+            <div className="flex-1 flex flex-col min-h-screen relative z-10 w-full">
+              {Header()}
+              <main className="flex-1 w-full">
+                {Dashboard()}
+              </main>
+            </div>
+            {Modals()}
+          </div>
+        </>
+      );
+    }
+
+    const root = createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+
+</html>
