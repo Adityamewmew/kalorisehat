@@ -20,8 +20,7 @@
       Search,
       Flame,
       X,
-      BarChart2,
-      Printer
+      BarChart2
     } from 'https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0';
 
     function App() {
@@ -130,24 +129,13 @@
       const glassInput = "w-full bg-white/40 ios-blur border border-white/60 rounded-2xl px-4 py-3 md:px-5 md:py-4 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 focus:bg-white/80 transition-all text-sm font-semibold text-slate-800 placeholder-slate-400 font-montserrat shadow-[inset_0_2px_5px_rgba(0,0,0,0.01)]";
       const glassInputCenter = glassInput + " text-center";
 
-      const handlePrint = () => {
-        window.print();
-      };
-
-
       const Header = () => (
         <header className="sticky top-0 z-50 bg-white/60 ios-blur border-b border-white/80 px-4 md:px-10 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 bg-black rounded-xl flex items-center justify-center rotate-3 scale-90 md:scale-100">
               <span className="text-white font-black text-sm">K</span>
             </div>
-            <div className="flex flex-col">
-              <h2 className="text-lg md:text-2xl font-black tracking-tighter text-slate-800 leading-none">Kaloriku</h2>
-              <button onClick={handlePrint} className="no-print flex items-center gap-1 text-[8px] font-bold text-blue-600 hover:text-blue-800 transition-all uppercase tracking-widest mt-1">
-                <Printer size={10} />
-                <span>Export Report</span>
-              </button>
-            </div>
+            <h2 className="text-lg md:text-2xl font-black tracking-tighter text-slate-800 mt-0.5">Kaloriku</h2>
           </div>
 
           <div className="flex items-center gap-2 hover-scale">
@@ -168,7 +156,6 @@
       const Dashboard = () => (
         <div className="p-4 md:p-10 space-y-6 md:space-y-10 max-w-[1400px] mx-auto animate-in fade-in duration-700">
           {/* Top Stats */}
-          {/* Top Stats - Unified Version */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-6">
             {/* Unified Calorie Card */}
             <div
@@ -236,24 +223,24 @@
           </div>
 
           {/* Dual Timelines Area with Date Grouping & Search */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-8">
+          <div className="grid grid-cols-2 items-start gap-2 md:gap-6 mb-8">
             {/* Calories Timeline (Grouped by Date) */}
-            <div className={`${glassCard} p-4 md:p-5 h-[450px] flex flex-col`}>
+            <div className={`${glassCard} p-3 md:p-5 min-h-[120px] max-h-[500px] flex flex-col`}>
               <div className="flex items-center justify-between mb-4 px-1">
                 <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-orange-100 rounded-lg text-orange-600">
+                  <div className="p-1 md:p-1.5 bg-orange-100 rounded-lg text-orange-600">
                     <Apple size={14} />
                   </div>
-                  <h3 className="font-bold text-slate-800 tracking-tight uppercase text-[11px]">Nutrition Log</h3>
+                  <h3 className="font-bold text-slate-800 tracking-tight uppercase text-[9px] md:text-[11px]">Nutrition</h3>
                 </div>
-                {/* Search Date Filter */}
-                <div className="flex items-center gap-2 bg-white/50 px-2 py-1 rounded-lg border border-white/80">
-                  <Search size={10} className="text-slate-400" />
+                {/* Search Date Filter (Minified for mobile) */}
+                <div className="flex items-center gap-1 md:gap-2 bg-white/50 px-1 md:px-2 py-1 rounded-lg border border-white/80">
+                  <Search size={8} className="text-slate-400" />
                   <input
                     type="date"
                     value={calSearchDate}
                     onChange={(e) => setCalSearchDate(e.target.value)}
-                    className="bg-transparent border-none text-[9px] font-bold text-slate-600 focus:ring-0 p-0 w-24"
+                    className="bg-transparent border-none text-[8px] font-bold text-slate-600 focus:ring-0 p-0 w-16 md:w-24"
                   />
                   {calSearchDate && (
                     <button onClick={() => setCalSearchDate('')} className="text-slate-400 hover:text-slate-600">
@@ -291,14 +278,14 @@
                         {groupedCals[date].sort((a, b) => (b.time || '').localeCompare(a.time || '')).map(item => (
                           <div key={item.id}
                             onClick={() => { setSelectedItem({ ...item, type: 'NUTRITION' }); setIsDetailModalOpen(true); }}
-                            className="p-3 rounded-2xl bg-white/40 border border-white/50 flex justify-between items-center hover:bg-white/60 transition-all shadow-sm cursor-pointer active:scale-95">
-                            <div className="flex-1 min-w-0 pr-2">
-                              <h4 className="font-bold text-[11px] text-slate-800 truncate">{item.name}</h4>
-                              <p className="text-[9px] text-slate-500 font-medium">{item.time} • {item.date}</p>
+                            className="p-3 md:p-4 rounded-2xl bg-white/40 border border-white/50 flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-white/60 transition-all shadow-sm cursor-pointer active:scale-95">
+                            <div className="flex-1 min-w-0 pr-1 w-full">
+                              <h4 className="font-bold text-[11px] md:text-[12px] text-slate-800 truncate leading-tight">{item.name}</h4>
+                              <p className="text-[9px] md:text-[10px] text-slate-500 font-medium">{item.time}</p>
                             </div>
-                            <div className="text-right shrink-0">
-                              <span className="text-[12px] font-black text-slate-800">{item.amount}</span>
-                              <p className="text-[8px] font-bold text-slate-400 tracking-tighter uppercase">Kcal</p>
+                            <div className="text-left md:text-right shrink-0 mt-1 md:mt-0">
+                              <span className="text-[12px] md:text-[14px] font-black text-slate-800">{item.amount}</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">kcal</span>
                             </div>
                           </div>
                         ))}
@@ -310,22 +297,22 @@
             </div>
 
             {/* Workouts Timeline (Grouped by Date & Search) */}
-            <div className={`${glassCard} p-4 md:p-5 h-[450px] flex flex-col`}>
+            <div className={`${glassCard} p-3 md:p-5 min-h-[120px] max-h-[500px] flex flex-col`}>
               <div className="flex items-center justify-between mb-4 px-1">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 bg-blue-100 rounded-lg text-blue-600">
+                <div className="flex items-center gap-1 md:gap-2">
+                  <div className="p-1 md:p-1.5 bg-blue-100 rounded-lg text-blue-600">
                     <Flame size={14} />
                   </div>
-                  <h3 className="font-bold text-slate-800 tracking-tight uppercase text-[11px]">Workout Progres</h3>
+                  <h3 className="font-bold text-slate-800 tracking-tight uppercase text-[9px] md:text-[11px]">Workout</h3>
                 </div>
-                {/* Search Date Filter */}
-                <div className="flex items-center gap-2 bg-white/50 px-2 py-1 rounded-lg border border-white/80">
-                  <Search size={10} className="text-slate-400" />
+                {/* Search Date Filter (Minified for mobile) */}
+                <div className="flex items-center gap-1 md:gap-2 bg-white/50 px-1 md:px-2 py-1 rounded-lg border border-white/80">
+                  <Search size={8} className="text-slate-400" />
                   <input
                     type="date"
                     value={woSearchDate}
                     onChange={(e) => setWoSearchDate(e.target.value)}
-                    className="bg-transparent border-none text-[9px] font-bold text-slate-600 focus:ring-0 p-0 w-24"
+                    className="bg-transparent border-none text-[8px] font-bold text-slate-600 focus:ring-0 p-0 w-16 md:w-24"
                   />
                   {woSearchDate && (
                     <button onClick={() => setWoSearchDate('')} className="text-slate-400 hover:text-slate-600">
@@ -363,17 +350,17 @@
                         {groupedWo[date].map(item => (
                           <div key={item.id}
                             onClick={() => { setSelectedItem({ ...item, isWorkout: true }); setIsDetailModalOpen(true); }}
-                            className="p-3 rounded-2xl bg-white/40 border border-white/50 flex justify-between items-center hover:bg-white/60 transition-all shadow-sm cursor-pointer active:scale-95">
-                            <div className="flex-1 min-w-0 pr-2">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-[8px] font-black px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 uppercase tracking-tighter">{item.type}</span>
-                                <h4 className="font-bold text-[11px] text-slate-800 truncate">{item.exercise}</h4>
+                            className="p-3 md:p-4 rounded-2xl bg-white/40 border border-white/50 flex flex-col md:flex-row justify-between items-start md:items-center hover:bg-white/60 transition-all shadow-sm cursor-pointer active:scale-95">
+                            <div className="flex-1 min-w-0 pr-1 w-full">
+                              <div className="flex flex-col md:flex-row md:items-center gap-0.5 md:gap-1.5">
+                                <span className="w-fit text-[8px] md:text-[9px] font-black px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 uppercase tracking-tighter">{item.type}</span>
+                                <h4 className="font-bold text-[11px] md:text-[12px] text-slate-800 truncate leading-tight">{item.exercise}</h4>
                               </div>
-                              <p className="text-[9px] text-slate-500 font-medium mt-1">{item.sets} x {item.reps} reps</p>
+                              <p className="text-[9px] md:text-[10px] text-slate-500 font-medium mt-1">{item.sets}x{item.reps}</p>
                             </div>
-                            <div className="text-right shrink-0">
-                              <span className="text-[12px] font-black text-slate-800">{item.weight}</span>
-                              <p className="text-[8px] font-bold text-slate-400 tracking-tighter uppercase">KG</p>
+                            <div className="text-left md:text-right shrink-0 mt-1 md:mt-0">
+                              <span className="text-[12px] md:text-[14px] font-black text-slate-800">{item.weight}</span>
+                              <span className="text-[9px] font-bold text-slate-400 uppercase ml-1">kg</span>
                             </div>
                           </div>
                         ))}
@@ -700,30 +687,6 @@
         .ios-blur {
           backdrop-filter: blur(24px) saturate(180%);
           -webkit-backdrop-filter: blur(24px) saturate(180%);
-        }
-
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          header, button, select, input, .sticky {
-            display: none !important;
-          }
-          body {
-            background: white !important;
-          }
-          .ios-blur {
-            backdrop-filter: none !important;
-            border: none !important;
-          }
-          div[class*="glassCard"] {
-            border: 1px solid #eee !important;
-            box-shadow: none !important;
-            break-inside: avoid;
-          }
-          main {
-            padding: 0 !important;
-          }
         }
         `
             }
