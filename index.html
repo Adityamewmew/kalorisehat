@@ -20,7 +20,8 @@
       Search,
       Flame,
       X,
-      BarChart2
+      BarChart2,
+      Printer
     } from 'https://esm.sh/lucide-react@0.292.0?deps=react@18.2.0';
 
     function App() {
@@ -129,7 +130,9 @@
       const glassInput = "w-full bg-white/40 ios-blur border border-white/60 rounded-2xl px-4 py-3 md:px-5 md:py-4 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 focus:bg-white/80 transition-all text-sm font-semibold text-slate-800 placeholder-slate-400 font-montserrat shadow-[inset_0_2px_5px_rgba(0,0,0,0.01)]";
       const glassInputCenter = glassInput + " text-center";
 
-      // --- RENDER COMPONENTS ---
+      const handlePrint = () => {
+        window.print();
+      };
 
 
       const Header = () => (
@@ -138,7 +141,13 @@
             <div className="w-8 h-8 bg-black rounded-xl flex items-center justify-center rotate-3 scale-90 md:scale-100">
               <span className="text-white font-black text-sm">K</span>
             </div>
-            <h2 className="text-lg md:text-2xl font-black tracking-tighter text-slate-800 mt-0.5">Kaloriku</h2>
+            <div className="flex flex-col">
+              <h2 className="text-lg md:text-2xl font-black tracking-tighter text-slate-800 leading-none">Kaloriku</h2>
+              <button onClick={handlePrint} className="no-print flex items-center gap-1 text-[8px] font-bold text-blue-600 hover:text-blue-800 transition-all uppercase tracking-widest mt-1">
+                <Printer size={10} />
+                <span>Export Report</span>
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center gap-2 hover-scale">
@@ -691,6 +700,30 @@
         .ios-blur {
           backdrop-filter: blur(24px) saturate(180%);
           -webkit-backdrop-filter: blur(24px) saturate(180%);
+        }
+
+        @media print {
+          .no-print {
+            display: none !important;
+          }
+          header, button, select, input, .sticky {
+            display: none !important;
+          }
+          body {
+            background: white !important;
+          }
+          .ios-blur {
+            backdrop-filter: none !important;
+            border: none !important;
+          }
+          div[class*="glassCard"] {
+            border: 1px solid #eee !important;
+            box-shadow: none !important;
+            break-inside: avoid;
+          }
+          main {
+            padding: 0 !important;
+          }
         }
         `
             }
