@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="id">
 
 <head>
@@ -126,7 +126,8 @@
 
       // --- GLASSMORPHISM STYLES UTILITIES ---
       const glassCard = "bg-white/60 ios-blur border border-white/80 shadow-[0_8px_32px_rgba(0,0,0,0.05)] rounded-[2rem] relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/60 before:to-white/10 before:pointer-events-none";
-      const glassInput = "w-full bg-white/60 ios-blur border border-white/80 rounded-[1.5rem] px-5 py-4 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 focus:bg-white/80 transition-all text-sm font-semibold text-slate-800 placeholder-slate-400 font-montserrat shadow-[inset_0_2px_5px_rgba(0,0,0,0.02)]";
+      const glassInput = "w-full bg-white/40 ios-blur border border-white/60 rounded-2xl px-4 py-3 md:px-5 md:py-4 focus:outline-none focus:ring-2 focus:ring-[#007AFF]/30 focus:bg-white/80 transition-all text-sm font-semibold text-slate-800 placeholder-slate-400 font-montserrat shadow-[inset_0_2px_5px_rgba(0,0,0,0.01)]";
+      const glassInputCenter = glassInput + " text-center";
 
       // --- RENDER COMPONENTS ---
 
@@ -417,18 +418,18 @@
                       <input type="number" required value={calForm.amount} onChange={e => setCalForm({
                         ...calForm, amount:
                           e.target.value
-                      })} placeholder="0" className={glassInput} />
+                      })} placeholder="0" className={glassInputCenter} />
                     </div>
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">TIME</label>
                       <input type="time" required value={calForm.time} onChange={e => setCalForm({
                         ...calForm, time:
                           e.target.value
-                      })} className={glassInput} />
+                      })} className={glassInputCenter} />
                     </div>
                   </div>
                   <button type="submit"
-                    className="w-full bg-black text-white font-bold tracking-wider py-4 mt-8 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:bg-slate-800 hover:-translate-y-0.5 transition-all">
+                    className="w-full bg-black text-white font-bold tracking-wider py-4 mt-6 rounded-2xl shadow-[0_12px_24px_rgba(0,0,0,0.2)] hover:bg-slate-800 active:scale-[0.98] transition-all">
                     CONFIRM ENTRY
                   </button>
                 </form>
@@ -452,7 +453,7 @@
                   </button>
                 </div>
                 <form onSubmit={handleAddWorkout} className="space-y-5">
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-3 md:gap-4">
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">DATE</label>
                       <input type="date" required value={woForm.date} onChange={e => setWoForm({
@@ -463,7 +464,7 @@
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">TYPE</label>
                       <select value={woForm.type} onChange={e => setWoForm({ ...woForm, type: e.target.value })}
-                        className={`${glassInput} appearance-none cursor-pointer`}>
+                        className={`${glassInput} appearance-none cursor-pointer text-center`}>
                         <option>STRENGTH</option>
                         <option>HYPERTROPHY</option>
                         <option>ENDURANCE</option>
@@ -480,32 +481,32 @@
                     })} placeholder="e.g. Barbell Squat" className={glassInput} />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-3 gap-2 md:gap-4">
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">SETS</label>
                       <input type="number" min="1" required value={woForm.sets} onChange={e => setWoForm({
                         ...woForm, sets:
                           e.target.value
-                      })} placeholder="3" className={glassInput} />
+                      })} placeholder="3" className={glassInputCenter} />
                     </div>
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">REPS</label>
                       <input type="number" min="1" required value={woForm.reps} onChange={e => setWoForm({
                         ...woForm, reps:
                           e.target.value
-                      })} placeholder="10" className={glassInput} />
+                      })} placeholder="10" className={glassInputCenter} />
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">WEIGHT (KG)</label>
+                      <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">WEIGHT</label>
                       <input type="number" min="0" required value={woForm.weight} onChange={e => setWoForm({
                         ...woForm, weight:
                           e.target.value
-                      })} placeholder="60" className={glassInput} />
+                      })} placeholder="60" className={glassInputCenter} />
                     </div>
                   </div>
 
                   <button type="submit"
-                    className="w-full bg-black text-white font-bold tracking-wider py-4 mt-8 rounded-xl shadow-[0_8px_24px_rgba(0,0,0,0.2)] hover:bg-slate-800 hover:-translate-y-0.5 transition-all">
+                    className="w-full bg-black text-white font-bold tracking-wider py-4 mt-6 rounded-2xl shadow-[0_12px_24px_rgba(0,0,0,0.2)] hover:bg-slate-800 active:scale-[0.98] transition-all">
                     SAVE WORKOUT
                   </button>
                 </form>
