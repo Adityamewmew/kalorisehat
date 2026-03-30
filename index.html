@@ -412,7 +412,7 @@
                         e.target.value
                     })} placeholder="e.g. Chicken Breast 200g" className={glassInput} />
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-5">
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">KCAL</label>
                       <input type="number" required value={calForm.amount} onChange={e => setCalForm({
@@ -453,7 +453,7 @@
                   </button>
                 </div>
                 <form onSubmit={handleAddWorkout} className="space-y-5">
-                  <div className="grid grid-cols-2 gap-3 md:gap-4">
+                  <div className="space-y-5">
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">DATE</label>
                       <input type="date" required value={woForm.date} onChange={e => setWoForm({
@@ -481,7 +481,7 @@
                     })} placeholder="e.g. Barbell Squat" className={glassInput} />
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2 md:gap-4">
+                  <div className="space-y-5">
                     <div>
                       <label className="text-[10px] font-bold text-slate-600 tracking-wider block mb-2">SETS</label>
                       <input type="number" min="1" required value={woForm.sets} onChange={e => setWoForm({
