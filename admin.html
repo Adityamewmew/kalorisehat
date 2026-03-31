@@ -78,10 +78,9 @@
       if (data) {
         countLabel.innerText = data.length;
         container.innerHTML = data.length ? data.map(u => `
-          <div class="glass-card p-10 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl hover:bg-white/90 transition-all">
+          <div class="glass-card p-8 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl hover:bg-white/90 transition-all">
             <div class="text-center md:text-left">
-              <h4 class="text-2xl font-black text-slate-800 uppercase tracking-tight">${u.full_name || 'User Baru'}</h4>
-              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">${u.email}</p>
+              <h4 class="text-lg font-black text-slate-800 uppercase tracking-widest">${u.email}</h4>
             </div>
             <button onclick="approveUser('${u.id}', this)" class="bg-emerald-500 text-white text-[10px] font-black px-10 py-5 rounded-2xl uppercase tracking-widest shadow-xl hover:bg-emerald-600 transition-all">ACC USER</button>
           </div>

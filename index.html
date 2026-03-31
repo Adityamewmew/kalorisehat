@@ -51,6 +51,9 @@
     let currentMode = 'LOGIN';
 
     async function checkUserOnIndex() {
+      // Force hide loader after 2 detik untuk jaga-jaga
+      setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 2000);
+
       const { data: { session } } = await sb.auth.getSession();
       if (session) {
         const profile = await getUserProfile(session.user.id);
