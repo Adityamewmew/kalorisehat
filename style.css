@@ -1,0 +1,70 @@
+/* --- DESAIN PREMIUM KALORIMU --- */
+body {
+  font-family: 'Montserrat', sans-serif;
+  background: #f2f2f7;
+  color: #1c1c1e;
+  margin: 0;
+  min-height: 100vh;
+}
+
+h1, h2, h3, .font-poppins {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Glassmorphism Ultra Premium */
+.ios-blur {
+  backdrop-filter: blur(25px) saturate(180%);
+  -webkit-backdrop-filter: blur(25px) saturate(180%);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.05);
+  border-radius: 2.5rem;
+  overflow: hidden;
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 1.2rem;
+  padding: 1.2rem !important;
+  outline: none;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  width: 100%;
+}
+
+.glass-input:focus {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.2);
+}
+
+/* Scrollbar Style */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+}
+
+/* Loading Overlay */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: #f2f2f7;
+  z-index: 999;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+header {
+  height: 96px;
+  background: rgba(255, 255, 255, 0.7);
+}
+#progress-circle {
+  transition: stroke-dashoffset 1s ease-in-out;
+}

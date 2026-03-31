@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KALORIMU | Admin Portal</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-[#f2f2f7]">
+  <!-- FORCE LOADER HIDE AFTER 3S TO PREVENT STUCK -->
+  <div id="loader"><div class="w-12 h-12 border-4 border-slate-200 border-t-black rounded-full animate-spin"></div></div>
+
+  <header class="sticky top-0 z-50 bg-white/70 ios-blur border-b border-white/80 h-24 flex items-center justify-between px-6 md:px-12">
+    <div class="flex items-center gap-3">
+       <div class="w-10 h-10 bg-black rounded-xl flex items-center justify-center rotate-3 shadow-lg text-white font-black text-lg">K</div>
+       <div>
+          <h2 class="text-xl font-black text-slate-800 tracking-tighter uppercase">Admin Portal</h2>
+          <span class="bg-rose-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full absolute -bottom-1 uppercase">Central ACC</span>
+       </div>
+    </div>
+    <div class="flex gap-4">
+      <button onclick="sb.auth.signOut().then(() => window.location.href='index.html');" class="p-4 bg-white/60 text-rose-500 rounded-2xl border border-white/80"><i data-lucide="log-out"></i></button>
+    </div>
+  </header>
+
+  <main class="max-w-4xl mx-auto p-6 md:p-12 space-y-12 animate-in slide-in-from-bottom-5 duration-500">
+    <div class="flex justify-between items-center">
+      <div>
+        <h3 class="text-3xl font-black uppercase tracking-tighter">Persetujuan User</h3>
+        <p class="text-xs font-black text-slate-400 tracking-widest uppercase">Daftar Tunggu Aktivasi</p>
+      </div>
+      <div class="w-16 h-16 bg-white/60 ios-blur p-4 rounded-3xl border border-white flex items-center justify-center shadow-lg">
+        <p id="txt-pending-count" class="text-2xl font-black text-black">0</p>
+      </div>
+    </div>
+
+    <div id="list-pending" class="space-y-6">
+      <p class="text-center py-24 opacity-20 font-black uppercase tracking-widest">Memuat database...</p>
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script>
+    async function checkAdminAuth() {
+      // 1. Force hide loader after 3 seconds anyway
+      setTimeout(() => { document.getElementById('loader').style.display = 'none'; }, 2000);
+
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'index.html'; return; }
+      
+      try {
+        const profile = await getUserProfile(session.user.id);
+        if (!profile || !profile.is_admin) {
+          window.location.href = profile?.is_approved ? 'dashboard.html' : 'index.html';
+          return;
+        }
+
+        await fetchPendingUsers();
+        document.getElementById('loader').style.display = 'none';
+        lucide.createIcons();
+      } catch (e) {
+        console.error("Auth Page Error:", e);
+        document.getElementById('loader').style.display = 'none';
+      }
+    }
+
+    async function fetchPendingUsers() {
+      const { data, error } = await sb.from('profiles').select('*').eq('is_approved', false);
+      const container = document.getElementById('list-pending');
+      const countLabel = document.getElementById('txt-pending-count');
+
+      if (data) {
+        countLabel.innerText = data.length;
+        container.innerHTML = data.length ? data.map(u => `
+          <div class="glass-card p-10 flex flex-col md:flex-row justify-between items-center gap-6 shadow-xl hover:bg-white/90 transition-all">
+            <div class="text-center md:text-left">
+              <h4 class="text-2xl font-black text-slate-800 uppercase tracking-tight">${u.full_name || 'User Baru'}</h4>
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">${u.email}</p>
+            </div>
+            <button onclick="approveUser('${u.id}', this)" class="bg-emerald-500 text-white text-[10px] font-black px-10 py-5 rounded-2xl uppercase tracking-widest shadow-xl hover:bg-emerald-600 transition-all">ACC USER</button>
+          </div>
+        `).join('') : '<p class="text-center py-20 opacity-20 font-black uppercase tracking-widest">TIDAK ADA PERSETUJUAN TERTUNDA</p>';
+      }
+    }
+
+    window.approveUser = async (id, btn) => {
+       btn.innerText = 'MEMPROSES...';
+       btn.disabled = true;
+       const { error } = await sb.from('profiles').update({ is_approved: true }).eq('id', id);
+       if (!error) fetchPendingUsers(); else { alert(error.message); btn.innerText = 'ACC USER'; btn.disabled = false; }
+    }
+
+    checkAdminAuth();
+  </script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KALORIMU | Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;900&display=swap" rel="stylesheet">
+</head>
+
+<body class="bg-[#f2f2f7]">
+  <div id="loader"><div class="w-12 h-12 border-4 border-slate-200 border-t-black rounded-full animate-spin"></div></div>
+
+  <header class="sticky top-0 z-50 bg-white/70 ios-blur border-b border-white/80 h-24 flex items-center justify-between px-6 md:px-12">
+    <div class="flex items-center gap-3">
+       <div class="w-12 h-12 bg-black rounded-2xl flex items-center justify-center rotate-3 shadow-lg"><span class="text-white font-black text-xl">K</span></div>
+       <h2 class="text-2xl font-black text-slate-800 tracking-tighter uppercase">Dashboard</h2>
+    </div>
+    <div class="flex gap-4">
+      <button onclick="logout()" class="p-4 bg-white/60 text-rose-500 rounded-2xl border border-white/80"><i data-lucide="log-out"></i></button>
+      <button onclick="openModal('modal-add')" class="md:px-8 p-4 bg-black text-white text-[10px] font-black rounded-3xl shadow-lg uppercase tracking-widest flex items-center gap-3">
+        <i data-lucide="apple"></i><span class="hidden md:inline">Tambah Data</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto p-6 md:p-12 space-y-12 animate-in fade-in duration-700">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="glass-card md:col-span-2 p-10 flex items-center gap-8">
+        <div class="w-32 h-32 relative shrink-0">
+           <svg class="w-full h-full -rotate-90">
+             <circle cx="64" cy="64" r="58" stroke="#ddd" stroke-width="8" fill="transparent"/>
+             <circle id="progress-circle" cx="64" cy="64" r="58" stroke="black" stroke-width="8" fill="transparent" stroke-dasharray="364.4" stroke-dashoffset="364.4"/>
+           </svg>
+           <div class="absolute inset-0 flex flex-col items-center justify-center font-black"><span id="txt-progress">0%</span></div>
+        </div>
+        <div class="border-l pl-8 grid grid-cols-2 gap-8 flex-1">
+           <div><p class="text-[10px] font-black text-slate-400 mb-1 uppercase tracking-widest">KCAL HARI INI</p><p class="text-3xl font-black" id="txt-kcal">0</p></div>
+           <div><p class="text-[10px] font-black text-slate-400 mb-1 uppercase tracking-widest">TOTAL LOGS</p><p class="text-3xl font-black" id="txt-logs">0</p></div>
+        </div>
+      </div>
+      <div class="glass-card p-10 border-l-8 border-black flex flex-col justify-center">
+         <p class="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest">WORKOUT SESSIONS</p>
+         <h3 class="text-7xl font-black" id="txt-workouts">0</h3>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+      <div class="glass-card p-8 flex flex-col min-h-[400px]">
+        <h3 class="text-xl font-black mb-6 flex items-center gap-3 uppercase tracking-tighter"><i data-lucide="shopping-bag" class="text-orange-500"></i> Log Nutrisi</h3>
+        <div id="list-calories" class="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar"></div>
+      </div>
+      <div class="glass-card p-8 flex flex-col min-h-[400px]">
+        <h3 class="text-xl font-black mb-6 flex items-center gap-3 uppercase tracking-tighter"><i data-lucide="zap" class="text-blue-500"></i> Sesi Latihan</h3>
+        <div id="list-workouts" class="space-y-4 overflow-y-auto pr-2 flex-1 custom-scrollbar"></div>
+      </div>
+    </div>
+  </main>
+
+  <div id="modal-add" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden items-center justify-center p-6">
+    <div class="glass-card bg-white p-10 w-full max-w-md shadow-2xl relative">
+      <button onclick="closeModal('modal-add')" class="absolute top-8 right-8"><i data-lucide="x"></i></button>
+      <h3 class="text-2xl font-black mb-10 uppercase tracking-tighter">Tambah Catatan</h3>
+      <select id="add-type" class="glass-input mb-4" onchange="toggleForm()">
+        <option value="CAL">Nutrisi/Makanan</option>
+        <option value="WO">Sesi Latihan</option>
+      </select>
+      <form id="form-data" onsubmit="saveData(event)" class="space-y-6">
+        <input type="text" id="add-name" required class="glass-input" placeholder="Nama Makanan / Latihan">
+        <input type="number" id="add-val" required class="glass-input" placeholder="Kalori (kcal) / Beban (kg)">
+        <input type="date" id="add-date" required class="glass-input">
+        <button type="submit" class="w-full bg-black text-white font-black py-5 rounded-3xl uppercase tracking-widest shadow-xl">SIMPAN DATA</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="config.js"></script>
+  <script>
+    let user = null;
+
+    async function checkDashboardAuth() {
+      const { data: { session } } = await sb.auth.getSession();
+      if (!session) { window.location.href = 'index.html'; return; }
+      
+      const profile = await getUserProfile(session.user.id);
+      if (!profile || !profile.is_approved) { window.location.href = 'index.html'; return; }
+      if (profile.is_admin) { window.location.href = 'admin.html'; return; }
+
+      user = session.user;
+      renderDashboard();
+      document.getElementById('loader').style.display = 'none';
+      lucide.createIcons();
+    }
+
+    async function renderDashboard() {
+      const { data: cal } = await sb.from('calories').select('*').eq('user_id', user.id).order('date', { ascending: false });
+      const { data: wo } = await sb.from('workouts').select('*').eq('user_id', user.id).order('date', { ascending: false });
+
+      renderList('list-calories', cal, 'kcal');
+      renderList('list-workouts', wo, 'kg', true);
+      updateStats(cal || [], wo || []);
+    }
+
+    function renderList(id, data, unit, isWo = false) {
+      const container = document.getElementById(id);
+      container.innerHTML = data.length ? data.map(d => `
+        <div class="p-6 bg-white/40 border border-white/80 rounded-[2rem] flex justify-between items-center hover:bg-white/90 transition-all shadow-sm">
+          <div><p class="font-bold">${isWo ? d.exercise : d.name}</p><p class="text-[10px] font-black opacity-30">${d.date}</p></div>
+          <p class="text-2xl font-black">${isWo ? d.weight : d.amount} <span class="text-[8px] opacity-30">${unit.toUpperCase()}</span></p>
+        </div>
+      `).join('') : '<p class="text-center opacity-20 font-black py-20">NO DATA</p>';
+    }
+
+    function updateStats(cal, wo) {
+      const today = new Date().toISOString().split('T')[0];
+      const todayKcal = cal.filter(c => c.date === today).reduce((s, c) => s + Number(c.amount), 0);
+      document.getElementById('txt-kcal').innerText = todayKcal;
+      document.getElementById('txt-logs').innerText = cal.length;
+      document.getElementById('txt-workouts').innerText = wo.length;
+
+      const pcent = Math.min(todayKcal / 2500, 1);
+      document.getElementById('txt-progress').innerText = Math.round(pcent * 100) + '%';
+      document.getElementById('progress-circle').style.strokeDashoffset = 364.4 - (pcent * 364.4);
+    }
+
+    async function saveData(e) {
+      e.preventDefault();
+      const type = document.getElementById('add-type').value;
+      const name = document.getElementById('add-name').value;
+      const val = document.getElementById('add-val').value;
+      const date = document.getElementById('add-date').value;
+
+      let error = null;
+      if (type === 'CAL') {
+        const { error: e1 } = await sb.from('calories').insert([{ user_id: user.id, name, amount: Number(val), date, time: '12:00' }]);
+        error = e1;
+      } else {
+        const { error: e2 } = await sb.from('workouts').insert([{ user_id: user.id, exercise: name, weight: Number(val), date, type: 'STRENGTH' }]);
+        error = e2;
+      }
+
+      if (!error) { closeModal('modal-add'); renderDashboard(); } else alert(error.message);
+    }
+
+    function openModal(id) { document.getElementById(id).classList.replace('hidden', 'flex'); }
+    function closeModal(id) { document.getElementById(id).classList.replace('flex', 'hidden'); }
+    function logout() { sb.auth.signOut(); window.location.href = 'index.html'; }
+
+    checkDashboardAuth();
+  </script>
+</body>
+</html>
